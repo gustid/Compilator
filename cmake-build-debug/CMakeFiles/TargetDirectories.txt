@@ -1,0 +1,3 @@
+C:/Users/toshiba/CLionProjects/compilator/cmake-build-debug/CMakeFiles/compilator.dir
+C:/Users/toshiba/CLionProjects/compilator/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/toshiba/CLionProjects/compilator/cmake-build-debug/CMakeFiles/rebuild_cache.dir
