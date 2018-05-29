@@ -2,10 +2,11 @@ struct Pt {
     int x, y;
 };
 
-struct Pt		points[20/4+5];
+struct Pt		points[20];
 int x;
-int		count(int x) {
+int		count(int k) {
     int i, n;
+
     for (i = n = 0; i < 10; i = i + 1) {
 
         if (points[i].x >= 0 && points[i].y >= 0)n = n + 1;

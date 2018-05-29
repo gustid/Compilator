@@ -8,14 +8,11 @@
 int unit();
 int declStruct();
 int declVar();
-//int typeBase(Type *);
-//int arrayDecl(Type *);
-//int typeName(Type *);
 int declFunc();
 int funcArg();
 int stm();
 int stmCompound();
-int expr();
+/*int expr();
 int exprAssign();
 int exprOr();
 int exprOr1();
@@ -36,7 +33,7 @@ int exprPostfix1();
 int exprPrimary();
 int exprPrimary1();
 int exprPrimary2();
-
+*/
 
 char *pch;
 char buffer[30001];
@@ -130,113 +127,224 @@ typedef struct _Token{
 
 //_______________analiza de domeniu_____________________________________________________________________________________
 
-void err(const char *fmt,...)
-{
-    va_list va;
-    va_start(va,fmt);
-    fprintf(stderr,"error: ");
-    vfprintf(stderr,fmt,va);
-    fputc('\n',stderr);
-    va_end(va);
-    exit(-1);
-}
+  void err(const char *fmt,...)
+  {
+      va_list va;
+      va_start(va,fmt);
+      fprintf(stderr,"error: ");
+      vfprintf(stderr,fmt,va);
+      fputc('\n',stderr);
+      va_end(va);
+      exit(-1);
+  }
 
-Token *lastToken = NULL;
-Token *tokens = NULL;
+  Token *lastToken = NULL;
+  Token *tokens = NULL;
 
-Token *addTk(int code)
-{
-    Token *tk;
-    SAFEALLOC(tk,Token);
-    tk->code=code;
-    tk->line=line;
-    tk->next=NULL;
-    if(lastToken){
-        lastToken->next=tk;
-    }else{
-        tokens=tk;
-    }
-    lastToken=tk;
-    return tk;
-}
+  Token *addTk(int code)
+  {
+      Token *tk;
+      SAFEALLOC(tk,Token);
+      tk->code=code;
+      tk->line=line;
+      tk->next=NULL;
+      if(lastToken){
+          lastToken->next=tk;
+      }else{
+          tokens=tk;
+      }
+      lastToken=tk;
+      return tk;
+  }
 
 
 
-void tkerr(const Token* tk, const char* fmt,...)
-{
-    va_list va;
-    va_start(va,fmt);
-    fprintf(stderr,"error in line %d: ",tk->line);
-    vfprintf(stderr,fmt,va);
-    fputc('\n',stderr);
-    va_end(va);
-    exit(-1);
-}
+  void tkerr(const Token* tk, const char* fmt,...)
+  {
+      va_list va;
+      va_start(va,fmt);
+      fprintf(stderr,"error in line %d: ",tk->line);
+      vfprintf(stderr,fmt,va);
+      fputc('\n',stderr);
+      va_end(va);
+      exit(-1);
+  }
 
-char escChar(char ch)
-{
-    switch(ch){
-        case 'a' : return '\a';
-        case 'b' : return '\b';
-        case 'f' : return '\f';
-        case 'n' : return '\n';
-        case 'r' : return '\r';
-        case 't' : return '\t';
-        case 'v' : return '\v';
-        case '\'' : return '\'';
-        case '?' : return '\?';
-        case '"' : return '\"';
-        case '\\' : return '\\';
-        case '0' : return '\0';
-        default : return ch;
-    }
-}
+  char escChar(char ch)
+  {
+      switch(ch){
+          case 'a' : return '\a';
+          case 'b' : return '\b';
+          case 'f' : return '\f';
+          case 'n' : return '\n';
+          case 'r' : return '\r';
+          case 't' : return '\t';
+          case 'v' : return '\v';
+          case '\'' : return '\'';
+          case '?' : return '\?';
+          case '"' : return '\"';
+          case '\\' : return '\\';
+          case '0' : return '\0';
+          default : return ch;
+      }
+  }
 
-char * createString(char* start, char* stop)
-{
-	int n = stop-start;
-	char *word ;
-	word = (char *)malloc((n+1)*sizeof(char));
-	memcpy(word,start,n);
-	word[n]='\0';
-        int i;
-            for(i=0;i<strlen(word);i++)
-            {
-                if(word[i]=='\\'){word[i]=escChar(word[i+1]);strcpy(word+(i+1),word+(i+2));}
+  char * createString(char* start, char* stop)
+  {
+      int n = stop-start;
+      char *word ;
+      word = (char *)malloc((n+1)*sizeof(char));
+      memcpy(word,start,n);
+      word[n]='\0';
+      int i;
+      for(i=0;i<strlen(word);i++)
+      {
+          if(word[i]=='\\'){word[i]=escChar(word[i+1]);strcpy(word+(i+1),word+(i+2));}
 
-            }
+      }
 
-	return word;
+      return word;
 
-}
+  }
 
-void showAtoms()
-{
-    Token *q = tokens;
-    while(q!=NULL)
-    {
-        printf(" %s ",names[q->code]);
-        if(!strcmp(names[q->code],"CT_INT")) printf(" : %d ",q->i);
-        if(!strcmp(names[q->code],"CT_REAL"))printf(" : %f ",q->r);
-        if(!strcmp(names[q->code],"ID"))printf(" : %s ",q-> text);
-        if(!strcmp(names[q->code],"CT_CHAR"))printf(" : %c ",q->i);
-        if(!strcmp(names[q->code],"CT_STRING")){
-            /*int i;
-            printf(" : ");
-            for(i=0;i<strlen(q->text);i++)
-            {
-                if(q->text[i]=='\\'){printf("%c",escChar(q->text[i+1]));i++;}
-                else printf("%c",q->text[i]);
+  void showAtoms()
+  {
+      Token *q = tokens;
+      while(q!=NULL)
+      {
+          printf(" %s ",names[q->code]);
+          if(!strcmp(names[q->code],"CT_INT")) printf(" : %d ",q->i);
+          if(!strcmp(names[q->code],"CT_REAL"))printf(" : %f ",q->r);
+          if(!strcmp(names[q->code],"ID"))printf(" : %s ",q-> text);
+          if(!strcmp(names[q->code],"CT_CHAR"))printf(" : %c ",q->i);
+          if(!strcmp(names[q->code],"CT_STRING")){
+              /*int i;
+              printf(" : ");
+              for(i=0;i<strlen(q->text);i++)
+              {
+                  if(q->text[i]=='\\'){printf("%c",escChar(q->text[i+1]));i++;}
+                  else printf("%c",q->text[i]);
 
-            }*/
-         printf(" : %s ",q->text);
-        }
-        printf(" line - %d ",q->line);
-        printf("\n");
-        q=q->next;
+              }*/
+              printf(" : %s ",q->text);
+          }
+          printf(" line - %d ",q->line);
+          printf("\n");
+          q=q->next;
 
-    }
-}
+      }
+  }
+//_______________analiza tipurilor______________________________________________________________________________________
+
+  Type createType(int typeBase,int nElements)
+  {
+      Type t;
+      t.typeBase=typeBase;
+      t.nElements=nElements;
+      return t;
+  }
+  typedef union{
+      long int i; // int, char
+      double d; // double
+      const char *str; // char[]
+  }CtVal;
+  typedef struct{
+      Type type; // type of the result
+      int isLVal; // if it is a LVal
+      int isCtVal; // if it is a constant value (int, real, char, char[])
+      CtVal ctVal; // the constat value
+  }RetVal;
+
+  void cast(Type *dst,Type *src) {
+      if (src->nElements > -1) {
+          if (dst->nElements > -1) {
+              if (src->typeBase != dst->typeBase)
+                  tkerr(crtTk, "an array cannot be converted to an array of another type");
+          } else {
+              tkerr(crtTk, "an array cannot be converted to a non-array");
+          }
+      } else {
+          if (dst->nElements > -1) {
+              tkerr(crtTk, "a non-array cannot be converted to an array");
+          }
+      }
+      switch (src->typeBase) {
+          case TB_CHAR:
+          case TB_INT:
+          case TB_DOUBLE:
+
+              switch (dst->typeBase) {
+                  case TB_CHAR:
+                  case TB_INT:
+                  case TB_DOUBLE:
+                      return;
+              }
+          case TB_STRUCT:
+              if (dst->typeBase == TB_STRUCT) {
+                  if (src->s != dst->s)
+                      tkerr(crtTk, "a structure cannot be converted to another one");
+                  return;
+              }
+      }
+      tkerr(crtTk, "incompatible types");
+  }
+
+  Type getArithType(Type *s1, Type *s2)
+  {
+      switch (s1->typeBase)
+      {
+          case TB_CHAR:
+              return *s2;
+              break;
+          case TB_INT:
+              switch (s2->typeBase)
+              {
+                  case TB_CHAR: return *s1;
+                      break;
+                  case TB_INT: return *s1;
+                      break;
+                  case TB_DOUBLE: return *s2;
+                      break;
+              }
+              break;
+          case TB_DOUBLE:
+              switch (s2->typeBase)
+              {
+                  case TB_CHAR: return *s1;
+                      break;
+                  case TB_INT: return *s1;
+                      break;
+                  case TB_DOUBLE: return *s1;
+                      break;
+              }
+              break;
+      }
+  }
+  int expr(RetVal*);
+  int exprAssign(RetVal*);
+  int exprOr(RetVal*);
+  int exprOr1(RetVal*);
+  int exprAnd(RetVal*);
+  int exprAnd1(RetVal*);
+  int exprEq(RetVal*);
+  int exprEq1(RetVal*);
+  int exprRel(RetVal*);
+  int exprRel1(RetVal*);
+  int exprAdd(RetVal*);
+  int exprAdd1(RetVal*);
+  int exprMul(RetVal*);
+  int exprMul1(RetVal*);
+  int exprCast(RetVal*);
+  int exprUnary(RetVal*);
+  int exprPostfix(RetVal*);
+  int exprPostfix1(RetVal*);
+  int exprPrimary(RetVal*);
+
+
+
+//_______________analiza tipurilor______________________________________________________________________________________
+
+
 //_______________analiza de domeniu_____________________________________________________________________________________
 
   void initSymbols(Symbols *symbols)
@@ -834,11 +942,17 @@ int arrayDecl(Type *ret)
 {
     Token *initTk = crtTk;
     printf("arrayDecl %s \n", names[crtTk->code]);
+    RetVal rv;
 
 
     if(consume(LBRACKET))
     {
-        expr();
+        if(expr(&rv))
+        {
+            if(!rv.isCtVal)tkerr(crtTk,"the array size is not a constant");
+            if(rv.type.typeBase!=TB_INT)tkerr(crtTk,"the array size is not an integer");
+            ret->nElements=rv.ctVal.i;
+        }else
         {
             ret->nElements = 0;
         }
@@ -997,14 +1111,17 @@ int stm()
 {
     Token *initTk = crtTk;
     printf("stm %s \n", names[crtTk->code]);
+    RetVal rv, rv1, rv2, rv3;
 
     if(stmCompound()){return 1;}
     else if(consume(IF))
     {
         if(consume(LPAR))
         {
-            if(expr())
+            if(expr(&rv))
             {
+                if(rv.type.typeBase==TB_STRUCT)
+                    tkerr(crtTk,"a structure cannot be logically tested");
                 if(consume(RPAR))
                 {
                     if(stm())
@@ -1023,8 +1140,10 @@ int stm()
     {
         if(consume(LPAR))
         {
-            if(expr())
+            if(expr(&rv))
             {
+                if(rv.type.typeBase==TB_STRUCT)
+                    tkerr(crtTk,"a structure cannot be logically tested");
                 if(consume(RPAR))
                 {
                     if(stm())
@@ -1038,18 +1157,22 @@ int stm()
     {
         if(consume(LPAR))
         {
-            expr();
+            expr(&rv1);
             if(consume(SEMICOLON))
             {
-                expr();
+                if(expr(&rv2))
+                {
+                    if(rv2.type.typeBase==TB_STRUCT)
+                        tkerr(crtTk,"a structure cannot be logically tested");
+                }
                 if(consume(SEMICOLON))
                 {
-                    expr();
+                    expr(&rv3);
                     if(consume(RPAR))
                     {
                         if(stm())
                         {
-                            return 1; printf("%s \n",names[crtTk->code]);
+                            return 1;
                         }else tkerr(crtTk,"lipseste statement de la for");
                     }else tkerr(crtTk,"lipseste ) la for ");
                 }else tkerr(crtTk,"lipseste ;2 la for");
@@ -1059,21 +1182,26 @@ int stm()
     {
         if(consume(SEMICOLON))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            return 1;
         }else tkerr(crtTk,"lipseste ; dupa break");
     }else if(consume(RETURN))
     {
-        expr();
+        expr(&rv);
+        {
+            if(crtFunc->type.typeBase==TB_VOID)
+                tkerr(crtTk,"a void function cannot return a value");
+            cast(&crtFunc->type,&rv.type);
+        }
         if(consume(SEMICOLON))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            return 1;
         }else tkerr(crtTk,"lipseste ; la return ");
     }else
     {
-        if(expr()) {
+        if(expr(&rv)) {
             if (consume(SEMICOLON)) {
                 return 1;
-                printf("%s \n", names[crtTk->code]);
+
             } else {
                // printf("&&&&&& %s ", names[crtTk->code]);
                 tkerr(crtTk, "lipseste ; la finalul stm");
@@ -1123,51 +1251,57 @@ int stmCompound()
     return 0;
 }
 
-int expr()
+int expr(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("expr %s \n", names[crtTk->code]);
 
-    if(exprAssign())
+    if(exprAssign(rv))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }
     crtTk = initTk;
     return 0;
 }
 
-int exprAssign()
+int exprAssign(RetVal *rv)
 {
     Token *initTk = crtTk ;
     printf("exprAssign %s \n", names[crtTk->code]);
+    RetVal rve;
 
-    if(exprUnary())
+    if(exprUnary(rv))
     {
         if(consume(ASSIGN))
         {
-            if(exprAssign())
+            if(exprAssign(&rve))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                if (!rv->isLVal)tkerr(crtTk, "cannot assign to a non-lval");
+                if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                    tkerr(crtTk, "the arrays cannot be assigned");
+                cast(&rv->type, &rve.type);
+                rv->isCtVal = rv->isLVal = 0;
+                return 1;
             }else tkerr(crtTk,"lipseste exprAssign la exprAssign");
         }
     }
     crtTk = initTk;
-    if(exprOr())
+    if(exprOr(rv))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }
 
     crtTk = initTk;
     return 0;
 }
 
-int exprOr()
+int exprOr(RetVal *rv)
 {
     Token *initTk = crtTk ;
     printf("exprOr %s \n", names[crtTk->code]);
-    if(exprAnd())
+    if(exprAnd(rv))
     {
-        if(exprOr1())
+        if(exprOr1(rv))
         {
             return 1; printf("%s \n",names[crtTk->code]);
         }else tkerr(crtTk,"lipseste exprOr1 la exprOr");
@@ -1177,46 +1311,56 @@ int exprOr()
     return 0;
 }
 
-int exprOr1()
+int exprOr1(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprOr1 %s \n", names[crtTk->code]);
+    RetVal rve;
     if(consume(OR))
     {
-        if(exprAnd())
+        if(exprAnd(&rve))
         {
-            if(exprOr1())
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be logically tested");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprOr1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste exprOr1 in exprOr1");
         }else tkerr(crtTk,"lipseste exprAnd in exprOr1");
-    }else {return 1; printf("%s \n",names[crtTk->code]);}
+    }else {return 1; }
 }
 
-int exprAnd()
+int exprAnd(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprAnd %s \n", names[crtTk->code]);
-    if(exprEq())
+    if(exprEq(rv))
     {
-        if(exprAnd1())
+        if(exprAnd1(rv))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            return 1;
         }else tkerr(crtTk,"lipseste exprAnd1 la exprAnd");
     }
     crtTk = initTk;
     return 0;
 }
 
-int exprAnd1()
+int exprAnd1(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprAnd1 %s \n", names[crtTk->code]);
+    RetVal rve;
      if(consume(AND))
     {
-        if(exprEq())
+        if(exprEq(&rve))
         {
-            if(exprAnd1())
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be logically tested");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprAnd1(rv))
             {
                 return 1; printf("%s \n",names[crtTk->code]);
             }else tkerr(crtTk,"lipseste exprAnd1 in exprAnd1");
@@ -1224,55 +1368,66 @@ int exprAnd1()
     }else {return 1; printf("%s \n",names[crtTk->code]);}
 }
 
-int exprEq()
+int exprEq(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprEq %s \n", names[crtTk->code]);
-    if(exprRel())
+    if(exprRel(rv))
     {
-        if(exprEq1())
+        if(exprEq1(rv))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            return 1;
         }else tkerr(crtTk,"lipseste exprEq1 la exprEq");
     }
     crtTk = initTk;
     return 0;
 }
 
-int exprEq1()
+int exprEq1(RetVal *rv)
 {
-    Token *initTk = crtTk;
+    Token *initTk = crtTk, *tkop;
     printf("exprEq1 %s \n", names[crtTk->code]);
-    if(consume(EQUAL))
+    RetVal rve;
+    if(consume(EQUAL) )
     {
-        if(exprRel())
+        tkop = consumedTk;
+        if(exprRel(&rve))
         {
-            if(exprEq1())
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be compared");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprEq1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }tkerr(crtTk,"lipseste exprEq1 la exprEq1");
         }tkerr(crtTk,"lipseste exprRel la exprEq1");
     }else if(consume(NOTEQ))
     {
-        if(exprRel())
+        tkop = consumedTk;
+        if(exprRel(&rve))
         {
-            if(exprEq1())
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be compared");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprEq1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }tkerr(crtTk,"lipseste exprEq1 la exprEq1");
         }tkerr(crtTk,"lipseste exprRel la exprEq1");
     }else{
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }
 }
 
-int exprRel()
+int exprRel(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprRel %s \n", names[crtTk->code]);
-    if(exprAdd())
+    if(exprAdd(rv))
     {
-        if(exprRel1())
+        if(exprRel1(rv))
         {
             return 1; printf("%s \n",names[crtTk->code]);
         }else tkerr(crtTk,"lipseste exprRel1 la exprRel");
@@ -1281,97 +1436,141 @@ int exprRel()
     return 0 ;
 }
 
-int exprRel1()
+int exprRel1(RetVal *rv)
 {
-    Token *initTk = crtTk;
+    Token *initTk = crtTk, *tkop;
     printf("exprRel1 %s \n", names[crtTk->code]);
+    RetVal rve;
     if(consume(LESS))
     {
-        if(exprAdd())
+        tkop = consumedTk;
+        if(exprAdd(&rve))
         {
-            if(exprRel1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be compared");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be compared");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprRel1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste eprRel1 la exprRel1");
         }else tkerr(crtTk,"lipseste exprAdd la exprRel1");
     }else if(consume(LESSEQ))
     {
-        if(exprAdd())
+        tkop = consumedTk;
+        if(exprAdd(&rve))
         {
-            if(exprRel1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be compared");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be compared");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprRel1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste eprRel1 la exprRel1");
         }else tkerr(crtTk,"lipseste exprAdd la exprRel1");
     }else if(consume(GREATER))
     {
-        if(exprAdd())
+        tkop = consumedTk;
+        if(exprAdd(&rve))
         {
-            if(exprRel1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be compared");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be compared");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprRel1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste eprRel1 la exprRel1");
         }else tkerr(crtTk,"lipseste exprAdd la exprRel1");
     }else if(consume(GREATEREQ))
     {
-        if(exprAdd())
+        tkop = consumedTk;
+        if(exprAdd(&rve))
         {
-            if(exprRel1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be compared");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be compared");
+            rv->type = createType(TB_INT, -1);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprRel1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste eprRel1 la exprRel1");
         }else tkerr(crtTk,"lipseste exprAdd la exprRel1");
     }else return 1; printf("%s \n",names[crtTk->code]);
 }
 
-int exprAdd()
+int exprAdd(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprAdd %s \n", names[crtTk->code]);
-    if(exprMul())
+    if(exprMul(rv))
     {
-        if(exprAdd1())
+        if(exprAdd1(rv))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            return 1;
         }else tkerr(crtTk,"lipseste exprAdd1 l exprAdd");
     }
     crtTk = initTk;
     return 0;
 }
 
-int exprAdd1()
+int exprAdd1(RetVal *rv)
 {
-    Token *initTk = crtTk;
+    Token *initTk = crtTk , *tkop;
     printf("exprAdd1 %s \n", names[crtTk->code]);
+    RetVal rve;
     if(consume(ADD))
     {
-        if(exprMul())
+        tkop = consumedTk;
+        if(exprMul(&rve))
         {
-            if(exprAdd1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be added or subtracted");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be added or subtracted");
+            rv->type = getArithType(&rv->type, &rve.type);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprAdd1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste exprAdd1 la exprAdd1");
         }else tkerr(crtTk,"lipseste exprMul la exprAdd1");
     }else if(consume(SUB))
     {
-        if(exprMul())
+        tkop = consumedTk;
+        if(exprMul(&rve))
         {
-            if(exprAdd1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be added or subtracted");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be added or subtracted");
+            rv->type = getArithType(&rv->type, &rve.type);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprAdd1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste exprAdd1 la exprAdd1");
         }else tkerr(crtTk,"lipseste exprMul la exprAdd1");
     }else return 1; printf("%s \n",names[crtTk->code]);
 
 }
 
-int exprMul()
+int exprMul(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprMul %s \n", names[crtTk->code]);
-    if(exprCast())
+    if(exprCast(rv))
     {
-        if(exprMul1())
+        if(exprMul1(rv))
         {
             return 1; printf("%s \n",names[crtTk->code]);
         }else tkerr(crtTk,"lipseste exprMul1 la exprMul");
@@ -1380,24 +1579,39 @@ int exprMul()
     return 0;
 }
 
-int exprMul1()
+int exprMul1(RetVal *rv)
 {
-    Token *initTk = crtTk;
+    Token *initTk = crtTk, *tkop;
     printf("exprMul1 %s \n", names[crtTk->code]);
+    RetVal rve;
     if(consume(MUL))
     {
-        if(exprCast())
+        tkop = consumedTk;
+        if(exprCast(&rve))
         {
-            if(exprMul1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be multiplied or divided");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be multiplied or divided");
+            rv->type = getArithType(&rv->type, &rve.type);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprMul1(rv))
             {
                 return 1; printf("%s \n",names[crtTk->code]);
             }else tkerr(crtTk,"lipseste exprMul1 la exprMul1");
         }else tkerr(crtTk,"lipseste exprCast la exprMul1");
     }else if(consume(DIV))
     {
-        if(exprCast())
+        tkop = consumedTk;
+        if(exprCast(&rve))
         {
-            if(exprMul1())
+            if (rv->type.nElements>-1 || rve.type.nElements>-1)
+                tkerr(crtTk, "an array cannot be multiplied or divided");
+            if (rv->type.typeBase == TB_STRUCT || rve.type.typeBase == TB_STRUCT)
+                tkerr(crtTk, "a structure cannot be multiplied or divided");
+            rv->type = getArithType(&rv->type, &rve.type);
+            rv->isCtVal = rv->isLVal = 0;
+            if(exprMul1(rv))
             {
                 return 1; printf("%s \n",names[crtTk->code]);
             }else tkerr(crtTk,"lipseste exprMul1 la exprMul1");
@@ -1406,24 +1620,28 @@ int exprMul1()
 
 }
 
-int exprCast()
+int exprCast(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprCast %s \n", names[crtTk->code]);
     Type t;
+    RetVal rve;
     if(consume(LPAR))
     {
         if(typeName(&t))
         {
             if(consume(RPAR))
             {
-                if(exprCast())
+                if(exprCast(&rve))
                 {
+                    cast(&t, &rve.type);
+                    rv->type = t;
+                    rv->isCtVal = rv->isLVal = 0;
                     return 1; printf("%s \n",names[crtTk->code]);
                 }else tkerr(crtTk,"lipseste exprCast la exprCast");
             }else tkerr(crtTk,"lipseste RPAR la exprCast");
         }else tkerr(crtTk,"lipseste typeName la exprCast");
-    }else if(exprUnary())
+    }else if(exprUnary(rv))
     {
         return 1; printf("%s \n",names[crtTk->code]);
     }
@@ -1432,40 +1650,70 @@ int exprCast()
     return 0;
 }
 
-int exprUnary()
+int exprUnary(RetVal *rv)
 {
-    Token *initTk = crtTk;
+    Token *initTk = crtTk, *tkop;
     printf("exprUnary %s \n", names[crtTk->code]);
     if(consume(SUB))
     {
-        if(exprUnary())
+        tkop = consumedTk;
+        if(exprUnary(rv))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            if (tkop->code == SUB)
+            {
+                if (rv->type.nElements >= 0)
+                    tkerr(crtTk, "unary '-' cannot be applied to an array");
+                if (rv->type.typeBase == TB_STRUCT)
+                    tkerr(crtTk, "unary '-' cannot be applied to a struct");
+            }
+            else
+            {  // NOT
+                if (rv->type.typeBase == TB_STRUCT)
+                    tkerr(crtTk, "'!' cannot be applied to a struct");
+                rv->type = createType(TB_INT, -1);
+            }
+            rv->isCtVal = rv->isLVal = 0;
+            return 1;
         }else tkerr(crtTk,"lipseste exprUnary la exprUnary");
     }else if(consume(NOT))
     {
-        if(exprUnary())
+        tkop = consumedTk;
+        if(exprUnary(rv))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            if (tkop->code == SUB)
+            {
+                if (rv->type.nElements >= 0)
+                    tkerr(crtTk, "unary '-' cannot be applied to an array");
+                if (rv->type.typeBase == TB_STRUCT)
+                    tkerr(crtTk, "unary '-' cannot be applied to a struct");
+            }
+            else
+            {  // NOT
+                if (rv->type.typeBase == TB_STRUCT)
+                    tkerr(crtTk, "'!' cannot be applied to a struct");
+                rv->type = createType(TB_INT, -1);
+            }
+            rv->isCtVal = rv->isLVal = 0;
+            return 1;
         }else tkerr(crtTk,"lipseste exprUnary la exprUnary");
-    }else if(exprPostfix())
+    }else if(exprPostfix(rv))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }
 
     crtTk = initTk;
     return 0;
 }
 
-int exprPostfix()
+int exprPostfix(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprPostfix %s \n", names[crtTk->code]);
-    if(exprPrimary())
+    if(exprPrimary(rv))
     {
-        if(exprPostfix1())
+        if(exprPostfix1(rv))
         {
-            return 1; printf("%s \n",names[crtTk->code]);
+            return 1;
         }else tkerr(crtTk,"lipseste exprPostfix1 la exprPostfix");
     }
 
@@ -1473,19 +1721,30 @@ int exprPostfix()
     return 0;
 }
 
-int exprPostfix1()
+int exprPostfix1(RetVal *rv)
 {
     Token *initTk = crtTk;
     printf("exprPostfix1 %s \n", names[crtTk->code]);
+    RetVal rve;
+    Token *tkName;
     if(consume(LBRACKET))
     {
-        if(expr())
+        if(expr(&rve))
         {
+            if (rv->type.nElements<0)
+                tkerr(crtTk, "only an array can be indexed");
+
+            Type typeInt = createType(TB_INT, -1);
+            cast(&typeInt, &rve.type);
+            rv->type = rv->type;
+            rv->type.nElements = -1;
+            rv->isLVal = 1;
+            rv->isCtVal = 0;
             if(consume(RBRACKET))
             {
-                if(exprPostfix1())
+                if(exprPostfix1(rv))
                 {
-                    return 1; printf("%s \n",names[crtTk->code]);
+                    return 1;
                 }else tkerr(crtTk,"lipseste exprPostfix1 la exprPostfix1");
             }else tkerr(crtTk,"lipseste RBRACKET la exprPostfix1");
         }else tkerr(crtTk,"lipseste expr la exprPostfix1");
@@ -1493,14 +1752,22 @@ int exprPostfix1()
     {
         if(consume(ID))
         {
-            if(exprPostfix1())
+            tkName = consumedTk;
+            Symbol      *sStruct = rv->type.s;
+            Symbol      *sMember = findSymbol(&sStruct->members, tkName->text);
+            if (!sMember)
+                tkerr(crtTk, "struct %s does not have a member %s", sStruct->name, tkName->text);
+            rv->type = sMember->type;
+            rv->isLVal = 1;
+            rv->isCtVal = 0;
+            if(exprPostfix1(rv))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste exprPostfix1 la exprPostfix1");
         }else tkerr(crtTk,"lipseste ID la exprPostfix1");
     }else return 1; printf("%s \n",names[crtTk->code]);
 }
-
+/*
 int exprPrimary()
 {
     Token *initTk = crtTk;
@@ -1508,26 +1775,26 @@ int exprPrimary()
     if(consume(ID))
     {
         exprPrimary1();
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }else if(consume(CT_INT))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }else if(consume(CT_REAL))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }else if(consume(CT_CHAR))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }else if(consume(CT_STRING))
     {
-        return 1; printf("%s \n",names[crtTk->code]);
+        return 1;
     }else if(consume(LPAR))
     {
         if(expr())
         {
             if(consume(RPAR))
             {
-                return 1; printf("%s \n",names[crtTk->code]);
+                return 1;
             }else tkerr(crtTk,"lipseste RPAR la exprPrimary");
         }else tkerr(crtTk,"lipseste expr la exprPrimary");
     }
@@ -1572,10 +1839,181 @@ int exprPrimary2()
     }
 }
 
+*/
 
+  int exprPrimary(RetVal *rv)
+  {
+      Token *initTk = crtTk;
+      Token *tkName;
+      Token *tki, *tkr, *tkc, *tks;
+      RetVal *arg = (RetVal*)malloc(sizeof(RetVal));
+
+      if (consume(CT_INT))
+      {
+          tki = consumedTk;
+          rv->type = createType(TB_INT, -1); rv->ctVal.i = tki->i;
+          rv->isCtVal = 1; rv->isLVal = 0;
+
+          return 1;
+      }
+
+      if (consume(CT_REAL))
+      {
+          tkr = consumedTk;
+          rv->type = createType(TB_DOUBLE, -1); rv->ctVal.d = tkr->r;
+          rv->isCtVal = 1; rv->isLVal = 0;
+
+          return 1;
+      }
+
+      if (consume(CT_CHAR))
+      {
+          tkc = consumedTk;
+          rv->type = createType(TB_CHAR, -1); rv->ctVal.i = tkc->i;
+          rv->isCtVal = 1; rv->isLVal = 0;
+
+          return 1;
+      }
+
+      if (consume(CT_STRING))
+      {
+          tks = consumedTk;
+          rv->type = createType(TB_CHAR, 0); rv->ctVal.str = tks->text;
+          rv->isCtVal = 1; rv->isLVal = 0;
+
+          return 1;
+      }
+
+      if (consume(LPAR))
+      {
+          if (expr(rv))
+          {
+              if (consume(RPAR))
+              {
+                  return 1;
+              }
+              else tkerr(crtTk, " ) missing (exprPrimary)\n");
+          }
+      }
+
+      if (consume(ID))
+      {
+          tkName = consumedTk;
+          Symbol *s = findSymbol(&symbols, tkName->text);
+          if (!s)
+              tkerr(crtTk, "undefined symbol %s", tkName->text);
+          rv->type = s->type;
+          rv->isCtVal = 0;
+          rv->isLVal = 1;
+
+          if (consume(LPAR))
+          {
+              Symbol **crtDefArg = s->args.begin;
+              if (s->cls != CLS_FUNC && s->cls != CLS_EXTFUNC)
+                  tkerr(crtTk, "call of the non-function %s", tkName->text);
+
+              if (expr(arg))
+              {
+                  if (crtDefArg == s->args.end)
+                      tkerr(crtTk, "too many arguments in call");
+                  cast(&(*crtDefArg)->type, &arg->type);
+                  crtDefArg++;
+
+                  while (1)
+                  {
+                      if (consume(COMMA))
+                      {
+                          if (expr(arg))
+                          {
+                              if (crtDefArg == s->args.end)
+                                  tkerr(crtTk, "too many arguments in call");
+                              cast(&(*crtDefArg)->type, &arg->type);
+                              crtDefArg++;
+                          }
+                          else break;
+                      }
+                      else break;
+                  }
+              }
+              if (consume(RPAR))
+              {
+                  if (crtDefArg != s->args.end)
+                      tkerr(crtTk, "too few arguments in call");
+                  rv->type = s->type;
+                  rv->isCtVal = rv->isLVal = 0;
+
+                  return 1;
+              }
+              else tkerr(crtTk, " ) missing (exprPrimary)\n");
+          }
+
+          if (s->cls == CLS_FUNC || s->cls == CLS_EXTFUNC)
+              tkerr(crtTk, "missing call for function %s", tkName->text);
+
+          return 1;
+      }
+
+      crtTk = initTk;
+
+      return 0;
+  }
 
 //------------------------------------------------------sintactic-----------------------------------------------------------------------------
-int main(){
+  void put_s(char s[]);
+  void get_s(char s[]);
+  void put_i(int i);
+  int get_i();
+  void put_d(double d);
+  double get_d();
+  void put_c(char c);
+  char get_c();
+  double seconds();
+
+
+  Symbol *addExtFunc(const char *name, Type type)
+  {
+      Symbol *s = addSymbol(&symbols, name, CLS_EXTFUNC);
+      s->type = type;
+      initSymbols(&s->args);
+      return s;
+  }
+  Symbol *addFuncArg(Symbol *func, const char *name, Type type)
+  {
+      Symbol *a = addSymbol(&func->args, name, CLS_VAR);
+      a->type = type;
+      return a;
+  }
+
+  void addExtFuncs()
+  {
+      Symbol *s;
+
+      s = addExtFunc("put_s", createType(TB_VOID, -1));
+      addFuncArg(s, "s", createType(TB_CHAR, 0));
+
+      s = addExtFunc("get_s", createType(TB_VOID, -1));
+      addFuncArg(s, "s", createType(TB_CHAR, 0));
+
+      s = addExtFunc("put_i", createType(TB_VOID, -1));
+      addFuncArg(s, "s", createType(TB_INT, -1));
+
+      s = addExtFunc("get_i", createType(TB_INT, -1));
+
+      s = addExtFunc("put_d", createType(TB_VOID, -1));
+      addFuncArg(s, "s", createType(TB_DOUBLE, -1));
+
+      s = addExtFunc("get_d", createType(TB_DOUBLE, -1));
+
+      s = addExtFunc("put_c", createType(TB_VOID, -1));
+      addFuncArg(s, "s", createType(TB_CHAR, 0));
+
+      s = addExtFunc("get_c", createType(TB_CHAR, -1));
+
+      s = addExtFunc("seconds", createType(TB_DOUBLE, -1));
+  }
+
+
+  int main(){
     FILE *f;
     //printf("aici\n");
     f = fopen("C:\\Users\\toshiba\\CLionProjects\\compilator\\9.c","r");
@@ -1605,6 +2043,7 @@ int main(){
     //showAtoms();
 
     crtTk = tokens;
+    addExtFuncs();
     if(unit() > 0)
     {
         printf("corect sintactic \n");
